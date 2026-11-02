@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>LocalDocs</title>
+    <style>
+      :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; background: #0b1020; color: #e6edf7; }
+      body { max-width: 820px; margin: 0 auto; padding: 48px 20px; }
+      h1 { margin-bottom: 4px; } .muted { color: #a8b3c7; }
+      section { background: #121a2d; border: 1px solid #263451; border-radius: 14px; padding: 20px; margin-top: 20px; }
+      input, button { font: inherit; padding: 12px; border-radius: 8px; } input { width: 68%; border: 1px solid #40557e; background: #0b1020; color: inherit; }
+      button { border: 0; background: #5c8dff; color: #071023; font-weight: 700; cursor: pointer; }
+      article { border-left: 3px solid #5c8dff; padding: 8px 14px; margin: 14px 0; white-space: pre-wrap; }
+      small { color: #a8b3c7; }
+    </style>
+  </head>
+  <body>
+    <h1>LocalDocs</h1>
+    <p class="muted">Private, source-grounded search. Your files stay on this machine.</p>
+    <section>
+      <h2>Add a document</h2>
+      <input id="file" type="file" accept=".txt,.md"><button onclick="upload()">Index locally</button>
+      <p id="upload-result" class="muted"></p>
+    </section>
+    <section>
+      <h2>Ask your documents</h2>
+      <input id="query" placeholder="e.g. What does the warranty cover?"><button onclick="search()">Search</button>
+      <div id="results"></div>
+    </section>
+    <script>
+      async function upload() {
+        const file = document.getElementById('file').files[0]; if (!file) return;
+        const form = new FormData(); form.append('upload', file);
+        const response = await fetch('/v1/documents', { method: 'POST', body: form });
+        document.getElementById('upload-result').textContent = JSON.stringify(await response.json());
+      }
+      async function search() {
+        const query = document.getElementById('query').value;
+        const response = await fetch('/v1/search', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({query}) });
+        const body = await response.json(); const area = document.getElementById('results'); area.innerHTML = '';
+        for (const result of body.results) { const item = document.createElement('article'); item.textContent = result.content; const meta = document.createElement('small'); meta.textContent = `${result.name} · passage ${result.ordinal} · score ${result.score}`; item.prepend(meta, document.createElement('br')); area.append(item); }
+        if (!body.results.length) area.textContent = 'No relevant local source found.';
+      }
+    </script>
+  </body>
+</html>
