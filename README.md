@@ -84,4 +84,4 @@ LocalDocs is designed to keep the baseline workflow local. It does not send docu
 
 ## License
 
-MIT © 2026 David Falcon
+MIT © 2026 David
